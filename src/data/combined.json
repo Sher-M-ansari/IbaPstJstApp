@@ -1,0 +1,26 @@
+[
+  {
+    "id": "e1",
+    "question": "Choose the correct synonym for 'ABANDON'.",
+    "options": ["Keep", "Desert", "Hold", "Maintain"],
+    "correctAnswer": "Desert",
+    "topic": "Vocabulary",
+    "subject": "English"
+  },
+  {
+    "id": "m1",
+    "question": "What is the value of x if 2x + 5 = 15?",
+    "options": ["5", "10", "15", "20"],
+    "correctAnswer": "5",
+    "topic": "Algebra",
+    "subject": "Math"
+  },
+  {
+    "id": "s1",
+    "question": "Which planet is known as the Red Planet?",
+    "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+    "correctAnswer": "Mars",
+    "topic": "Astronomy",
+    "subject": "Science"
+  }
+]

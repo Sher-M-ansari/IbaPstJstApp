@@ -1,0 +1,37 @@
+[
+  {
+    "id": "e1",
+    "question": "Choose the correct synonym for 'ABANDON'.",
+    "options": ["Keep", "Desert", "Hold", "Maintain"],
+    "correctAnswer": "Desert",
+    "topic": "Vocabulary"
+  },
+  {
+    "id": "e2",
+    "question": "Identify the part of speech for the underlined word: 'She runs *quickly*.'",
+    "options": ["Noun", "Verb", "Adjective", "Adverb"],
+    "correctAnswer": "Adverb",
+    "topic": "Grammar"
+  },
+  {
+    "id": "e3",
+    "question": "Which of the following is a correctly spelled word?",
+    "options": ["Accomodate", "Accommodate", "Acomodate", "Acommodate"],
+    "correctAnswer": "Accommodate",
+    "topic": "Spelling"
+  },
+  {
+    "id": "e4",
+    "question": "Choose the correct preposition: 'He is interested ___ music.'",
+    "options": ["in", "on", "at", "with"],
+    "correctAnswer": "in",
+    "topic": "Grammar"
+  },
+  {
+    "id": "e5",
+    "question": "What is the antonym of 'ANCIENT'?",
+    "options": ["Old", "Antique", "Modern", "Historic"],
+    "correctAnswer": "Modern",
+    "topic": "Vocabulary"
+  }
+]

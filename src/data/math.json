@@ -1,0 +1,37 @@
+[
+  {
+    "id": "m1",
+    "question": "What is the value of x if 2x + 5 = 15?",
+    "options": ["5", "10", "15", "20"],
+    "correctAnswer": "5",
+    "topic": "Algebra"
+  },
+  {
+    "id": "m2",
+    "question": "What is the square root of 144?",
+    "options": ["10", "11", "12", "13"],
+    "correctAnswer": "12",
+    "topic": "Arithmetic"
+  },
+  {
+    "id": "m3",
+    "question": "What is the area of a circle with radius 7? (Use π = 22/7)",
+    "options": ["44", "154", "308", "616"],
+    "correctAnswer": "154",
+    "topic": "Geometry"
+  },
+  {
+    "id": "m4",
+    "question": "What is 25% of 200?",
+    "options": ["25", "50", "75", "100"],
+    "correctAnswer": "50",
+    "topic": "Arithmetic"
+  },
+  {
+    "id": "m5",
+    "question": "If a triangle has angles 90° and 45°, what is the third angle?",
+    "options": ["30°", "45°", "60°", "90°"],
+    "correctAnswer": "45°",
+    "topic": "Geometry"
+  }
+]

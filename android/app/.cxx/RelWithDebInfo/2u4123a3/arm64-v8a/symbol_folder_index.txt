@@ -1,0 +1,1 @@
+/Users/apple/Documents/MaftechProjects/IbaPstJstApp/android/app/build/intermediates/cxx/RelWithDebInfo/2u4123a3/obj/arm64-v8a

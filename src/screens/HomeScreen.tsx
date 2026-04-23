@@ -1,17 +1,43 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
 import { BookOpen, BarChart2, Settings, Play } from 'lucide-react-native';
+import { getDBConnection, getTestHistory } from '../database/db';
 
 const HomeScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const [testsTaken, setTestsTaken] = useState(0);
+  const [avgAccuracy, setAvgAccuracy] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadStats = async () => {
+        try {
+          const db = await getDBConnection();
+          const history = await getTestHistory(db);
+          setTestsTaken(history.length);
+          setAvgAccuracy(
+            history.length > 0
+              ? Math.round(history.reduce((a, c) => a + c.score, 0) / history.length)
+              : 0
+          );
+        } catch (e) {
+          console.error('Error loading home stats:', e);
+        }
+      };
+      loadStats();
+    }, [])
+  );
 
   const MenuCard = ({ title, icon: Icon, onPress, color }: any) => (
-    <TouchableOpacity 
-      style={[styles.card, { borderLeftColor: color }]} 
+    <TouchableOpacity
+      style={[styles.card, { borderLeftColor: color }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
@@ -22,7 +48,7 @@ const HomeScreen = () => {
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardSubtitle}>Tap to explore</Text>
       </View>
-      <Play size={20} color={COLORS.light.textSecondary} />
+      <Play size={20} color={theme.textSecondary} />
     </TouchableOpacity>
   );
 
@@ -35,23 +61,23 @@ const HomeScreen = () => {
         </View>
 
         <View style={styles.menuGrid}>
-          <MenuCard 
-            title="Start Test" 
-            icon={BookOpen} 
-            onPress={() => navigation.navigate('SubjectSelection')} 
-            color={COLORS.primary} 
+          <MenuCard
+            title="Start Test"
+            icon={BookOpen}
+            onPress={() => navigation.navigate('SubjectSelection')}
+            color={theme.primary}
           />
-          <MenuCard 
-            title="Analytics" 
-            icon={BarChart2} 
-            onPress={() => navigation.navigate('Analytics')} 
-            color="#9C27B0" 
+          <MenuCard
+            title="Analytics"
+            icon={BarChart2}
+            onPress={() => navigation.navigate('Analytics')}
+            color={theme.accentPurple}
           />
-          <MenuCard 
-            title="Settings" 
-            icon={Settings} 
-            onPress={() => navigation.navigate('Settings')} 
-            color="#607D8B" 
+          <MenuCard
+            title="Settings"
+            icon={Settings}
+            onPress={() => navigation.navigate('Settings')}
+            color={theme.accentSlate}
           />
         </View>
 
@@ -59,11 +85,11 @@ const HomeScreen = () => {
           <Text style={styles.sectionTitle}>Quick Stats</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statValue}>{testsTaken}</Text>
               <Text style={styles.statLabel}>Tests Taken</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0%</Text>
+              <Text style={styles.statValue}>{avgAccuracy}%</Text>
               <Text style={styles.statLabel}>Avg. Accuracy</Text>
             </View>
           </View>
@@ -73,10 +99,10 @@ const HomeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   scrollContent: {
     padding: SPACING.lg,
@@ -87,12 +113,12 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 18,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
   },
   appName: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   menuGrid: {
     gap: SPACING.md,
@@ -100,14 +126,14 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
     borderLeftWidth: 5,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: theme.shadowOpacity,
     shadowRadius: 4,
   },
   iconContainer: {
@@ -124,11 +150,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
   },
   statsOverview: {
     marginTop: SPACING.xl,
@@ -136,7 +162,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
     marginBottom: SPACING.md,
   },
   statsRow: {
@@ -146,7 +172,7 @@ const styles = StyleSheet.create({
   },
   statItem: {
     flex: 1,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
@@ -155,11 +181,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginTop: 4,
   },
 });

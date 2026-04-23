@@ -4,8 +4,24 @@ SQLite.enablePromise(true);
 
 const database_name = "IbaPstJst.db";
 
+export interface TopicPerformance {
+  id: number;
+  topic: string;
+  subject: string;
+  correctCount: number;
+  totalCount: number;
+}
+
+export interface TopicDelta {
+  topic: string;
+  correctDelta: number;
+  totalDelta: number;
+}
+
 export const getDBConnection = async () => {
-  return SQLite.openDatabase({ name: database_name, location: 'default' });
+  const db = await SQLite.openDatabase({ name: database_name, location: 'default' });
+  await createTables(db);
+  return db;
 };
 
 export const createTables = async (db: SQLite.SQLiteDatabase) => {
@@ -20,7 +36,7 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
     timeTaken INTEGER,
     date TEXT
   );`;
-  
+
   const topicQuery = `CREATE TABLE IF NOT EXISTS TopicPerformance (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     topic TEXT,
@@ -31,10 +47,13 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
 
   await db.executeSql(query);
   await db.executeSql(topicQuery);
+  await db.executeSql(
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_topic_subject_unique ON TopicPerformance(topic, subject);`
+  );
 };
 
 export const saveTestResult = async (db: SQLite.SQLiteDatabase, result: any) => {
-  const insertQuery = `INSERT INTO TestHistory (subject, score, totalQuestions, correctAnswers, incorrectAnswers, accuracy, timeTaken, date) 
+  const insertQuery = `INSERT INTO TestHistory (subject, score, totalQuestions, correctAnswers, incorrectAnswers, accuracy, timeTaken, date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
   const values = [
     result.subject,
@@ -49,19 +68,24 @@ export const saveTestResult = async (db: SQLite.SQLiteDatabase, result: any) => 
   return db.executeSql(insertQuery, values);
 };
 
-export const updateTopicPerformance = async (db: SQLite.SQLiteDatabase, topic: string, subject: string, isCorrect: boolean) => {
-  const checkQuery = `SELECT * FROM TopicPerformance WHERE topic = ? AND subject = ?`;
-  const results = await db.executeSql(checkQuery, [topic, subject]);
-  
-  if (results[0].rows.length > 0) {
-    const updateQuery = isCorrect 
-      ? `UPDATE TopicPerformance SET correctCount = correctCount + 1, totalCount = totalCount + 1 WHERE topic = ? AND subject = ?`
-      : `UPDATE TopicPerformance SET totalCount = totalCount + 1 WHERE topic = ? AND subject = ?`;
-    return db.executeSql(updateQuery, [topic, subject]);
-  } else {
-    const insertQuery = `INSERT INTO TopicPerformance (topic, subject, correctCount, totalCount) VALUES (?, ?, ?, ?)`;
-    return db.executeSql(insertQuery, [topic, subject, isCorrect ? 1 : 0, 1]);
-  }
+export const updateTopicPerformanceBatch = async (
+  db: SQLite.SQLiteDatabase,
+  subject: string,
+  deltas: TopicDelta[],
+): Promise<void> => {
+  if (deltas.length === 0) return;
+  await db.transaction((tx: SQLite.Transaction) => {
+    for (const d of deltas) {
+      tx.executeSql(
+        `INSERT INTO TopicPerformance (topic, subject, correctCount, totalCount)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(topic, subject) DO UPDATE SET
+           correctCount = correctCount + excluded.correctCount,
+           totalCount   = totalCount   + excluded.totalCount`,
+        [d.topic, subject, d.correctDelta, d.totalDelta],
+      );
+    }
+  });
 };
 
 export const getTestHistory = async (db: SQLite.SQLiteDatabase) => {
@@ -73,11 +97,26 @@ export const getTestHistory = async (db: SQLite.SQLiteDatabase) => {
   return history;
 };
 
-export const getTopicPerformance = async (db: SQLite.SQLiteDatabase) => {
-  const results = await db.executeSql(`SELECT * FROM TopicPerformance`);
-  let performance = [];
+export const getTopicPerformance = async (
+  db: SQLite.SQLiteDatabase,
+): Promise<TopicPerformance[]> => {
+  const results = await db.executeSql(
+    `SELECT id, topic, subject, correctCount, totalCount
+       FROM TopicPerformance
+      WHERE totalCount > 0
+      ORDER BY (correctCount * 1.0 / totalCount) ASC, topic ASC`,
+  );
+  const performance: TopicPerformance[] = [];
   for (let i = 0; i < results[0].rows.length; i++) {
     performance.push(results[0].rows.item(i));
   }
   return performance;
+};
+
+export const clearAllData = async (db: SQLite.SQLiteDatabase): Promise<void> => {
+  await db.transaction((tx: SQLite.Transaction) => {
+    tx.executeSql(`DELETE FROM TestHistory;`);
+    tx.executeSql(`DELETE FROM TopicPerformance;`);
+    tx.executeSql(`DELETE FROM sqlite_sequence WHERE name IN ('TestHistory','TopicPerformance');`);
+  });
 };

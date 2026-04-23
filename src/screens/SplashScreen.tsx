@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS } from '../utils/theme';
+import { Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const SplashScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.5);
 
@@ -41,10 +44,10 @@ const SplashScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -54,12 +57,12 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 42,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
     letterSpacing: 2,
   },
   subText: {
     fontSize: 18,
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
     marginTop: 10,
     opacity: 0.9,
   },

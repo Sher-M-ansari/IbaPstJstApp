@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Alert, BackHandler } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
-import { ChevronLeft, Clock, X } from 'lucide-react-native';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
+import { Clock, X } from 'lucide-react-native';
+import { getDBConnection, updateTopicPerformanceBatch, TopicDelta } from '../database/db';
 
-// Import JSON data
 import englishData from '../data/english.json';
 import mathData from '../data/math.json';
 import scienceData from '../data/science.json';
@@ -32,18 +33,19 @@ const TestScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Test'>>();
   const { subject, questionCount } = route.params;
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [timer, setTimer] = useState(0);
-  const [isFinished, setIsFinished] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
 
   useEffect(() => {
     const rawData = DATA_MAP[subject] || [];
     let selectedQuestions = shuffleArray(rawData).slice(0, questionCount);
-    
-    // Shuffle options for each question
+
     selectedQuestions = selectedQuestions.map(q => ({
       ...q,
       shuffledOptions: shuffleArray(q.options)
@@ -81,18 +83,28 @@ const TestScreen = () => {
     }
   };
 
-  const finishTest = () => {
+  const finishTest = async () => {
+    setIsFinishing(true);
     let correct = 0;
     const wrongQuestions: any[] = [];
+    const topicMap = new Map<string, TopicDelta>();
 
     questions.forEach((q, index) => {
-      if (selectedAnswers[index] === q.correctAnswer) {
+      const isCorrect = selectedAnswers[index] === q.correctAnswer;
+      if (isCorrect) {
         correct++;
       } else {
         wrongQuestions.push({
           ...q,
           userAnswer: selectedAnswers[index] || 'Not Answered'
         });
+      }
+
+      if (q.topic) {
+        const prev = topicMap.get(q.topic) ?? { topic: q.topic, correctDelta: 0, totalDelta: 0 };
+        prev.totalDelta += 1;
+        if (isCorrect) prev.correctDelta += 1;
+        topicMap.set(q.topic, prev);
       }
     });
 
@@ -107,6 +119,13 @@ const TestScreen = () => {
       subject,
       wrongQuestions
     };
+
+    try {
+      const db = await getDBConnection();
+      await updateTopicPerformanceBatch(db, subject, Array.from(topicMap.values()));
+    } catch (e) {
+      console.error('Failed to persist topic performance:', e);
+    }
 
     navigation.replace('Result', result);
   };
@@ -125,7 +144,7 @@ const TestScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-          <X size={24} color={COLORS.light.text} />
+          <X size={24} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>Question {currentIndex + 1} of {questions.length}</Text>
@@ -134,7 +153,7 @@ const TestScreen = () => {
           </View>
         </View>
         <View style={styles.timerContainer}>
-          <Clock size={18} color={COLORS.primary} />
+          <Clock size={18} color={theme.primary} />
           <Text style={styles.timerText}>{formatTime(timer)}</Text>
         </View>
       </View>
@@ -178,10 +197,10 @@ const TestScreen = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.nextButton, !selectedAnswers[currentIndex] && styles.disabledButton]} 
+        <TouchableOpacity
+          style={[styles.nextButton, (!selectedAnswers[currentIndex] || isFinishing) && styles.disabledButton]}
           onPress={handleNext}
-          disabled={!selectedAnswers[currentIndex]}
+          disabled={!selectedAnswers[currentIndex] || isFinishing}
         >
           <Text style={styles.nextButtonText}>
             {currentIndex === questions.length - 1 ? 'Finish Test' : 'Next Question'}
@@ -192,16 +211,16 @@ const TestScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     elevation: 2,
   },
   closeButton: {
@@ -213,24 +232,24 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginBottom: 4,
     textAlign: 'center',
   },
   progressBar: {
     height: 6,
-    backgroundColor: COLORS.light.border,
+    backgroundColor: theme.border,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
   },
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: theme.surfaceAlt,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
     borderRadius: BORDER_RADIUS.md,
@@ -239,14 +258,14 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
     fontFamily: 'monospace',
   },
   content: {
     padding: SPACING.lg,
   },
   questionCard: {
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     marginBottom: SPACING.xl,
@@ -255,8 +274,8 @@ const styles = StyleSheet.create({
   topicBadge: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: COLORS.primary,
-    backgroundColor: '#E3F2FD',
+    color: theme.primary,
+    backgroundColor: theme.surfaceAlt,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -266,7 +285,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.light.text,
+    color: theme.text,
     lineHeight: 28,
   },
   optionsContainer: {
@@ -275,55 +294,55 @@ const styles = StyleSheet.create({
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
-    borderColor: COLORS.light.border,
+    borderColor: theme.border,
   },
   selectedOption: {
-    borderColor: COLORS.primary,
-    backgroundColor: '#E3F2FD',
+    borderColor: theme.primary,
+    backgroundColor: theme.surfaceAlt,
   },
   optionCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.light.border,
+    borderColor: theme.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
   },
   selectedOptionCircle: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   optionLetter: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
   },
   selectedOptionLetter: {
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
   },
   optionText: {
     fontSize: 16,
-    color: COLORS.light.text,
+    color: theme.text,
     flex: 1,
   },
   selectedOptionText: {
     fontWeight: '600',
-    color: COLORS.primary,
+    color: theme.primary,
   },
   footer: {
     padding: SPACING.lg,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: COLORS.light.border,
+    borderTopColor: theme.border,
   },
   nextButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     height: 56,
     borderRadius: BORDER_RADIUS.lg,
     justifyContent: 'center',
@@ -331,13 +350,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   disabledButton: {
-    backgroundColor: COLORS.light.border,
+    backgroundColor: theme.border,
     elevation: 0,
   },
   nextButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
   },
 });
 

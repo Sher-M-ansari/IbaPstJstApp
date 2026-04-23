@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
 import { ChevronLeft, Play } from 'lucide-react-native';
 
 const QUESTION_COUNTS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -12,6 +13,8 @@ const TestSetupScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TestSetup'>>();
   const { subject } = route.params;
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedCount, setSelectedCount] = useState(10);
 
   const handleStartTest = () => {
@@ -22,7 +25,7 @@ const TestSetupScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={COLORS.light.text} />
+          <ChevronLeft size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Test Setup</Text>
       </View>
@@ -66,17 +69,17 @@ const TestSetupScreen = () => {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.startButton} onPress={handleStartTest}>
           <Text style={styles.startButtonText}>Start Test</Text>
-          <Play size={20} color="#FFFFFF" fill="#FFFFFF" />
+          <Play size={20} color={theme.textOnPrimary} fill={theme.textOnPrimary} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -90,13 +93,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   content: {
     padding: SPACING.lg,
   },
   subjectInfo: {
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     marginBottom: SPACING.xl,
@@ -104,18 +107,18 @@ const styles = StyleSheet.create({
   },
   subjectLabel: {
     fontSize: 14,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   subjectValue: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
     marginBottom: SPACING.md,
   },
   grid: {
@@ -127,52 +130,52 @@ const styles = StyleSheet.create({
   countButton: {
     width: '18%',
     aspectRatio: 1,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     borderRadius: BORDER_RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.light.border,
+    borderColor: theme.border,
   },
   selectedCountButton: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   countText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   selectedCountText: {
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
   },
   instructions: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: theme.surfaceAlt,
     padding: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
+    borderLeftColor: theme.primary,
   },
   instructionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
     marginBottom: SPACING.sm,
   },
   instructionText: {
     fontSize: 14,
-    color: '#455A64',
+    color: theme.textSecondary,
     marginBottom: 4,
     lineHeight: 20,
   },
   footer: {
     padding: SPACING.lg,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: COLORS.light.border,
+    borderTopColor: theme.border,
   },
   startButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     flexDirection: 'row',
     height: 56,
     borderRadius: BORDER_RADIUS.lg,
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
   },
 });
 

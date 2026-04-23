@@ -1,35 +1,74 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Switch, ScrollView, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
+import { clearAllData, getDBConnection } from '../database/db';
 import { ChevronLeft, Moon, Bell, Trash2, Info, Share2 } from 'lucide-react-native';
+import {
+  isNotificationsEnabled,
+  setNotificationsEnabledAndApply,
+} from '../services/notifications';
 
 const SettingsScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { theme, isDark, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const [notificationsEnabled, setNotificationsEnabledLocal] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    isNotificationsEnabled()
+      .then((v) => {
+        if (!cancelled) setNotificationsEnabledLocal(v);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleToggleNotifications = async (next: boolean) => {
+    setNotificationsEnabledLocal(next);
+    try {
+      const resolved = await setNotificationsEnabledAndApply(next);
+      if (resolved !== next) {
+        setNotificationsEnabledLocal(resolved);
+        if (next && !resolved) {
+          Alert.alert(
+            'Notifications blocked',
+            'Please enable notifications for this app in your device settings to receive daily reminders.',
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('toggle notifications failed', err);
+      setNotificationsEnabledLocal(!next);
+    }
+  };
 
   const SettingItem = ({ icon: Icon, title, subtitle, value, onValueChange, type = 'switch', onPress }: any) => (
-    <TouchableOpacity 
-      style={styles.settingItem} 
+    <TouchableOpacity
+      style={styles.settingItem}
       onPress={onPress}
       disabled={type === 'switch'}
     >
       <View style={styles.settingIcon}>
-        <Icon size={22} color={COLORS.primary} />
+        <Icon size={22} color={theme.primary} />
       </View>
       <View style={styles.settingContent}>
         <Text style={styles.settingTitle}>{title}</Text>
         {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
       </View>
       {type === 'switch' ? (
-        <Switch 
-          value={value} 
+        <Switch
+          value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: COLORS.light.border, true: COLORS.primary + '80' }}
-          thumbColor={value ? COLORS.primary : '#f4f3f4'}
+          trackColor={{ false: theme.switchTrackOff, true: theme.primary + '80' }}
+          thumbColor={value ? theme.primary : theme.switchThumbOff}
         />
       ) : (
         <View style={styles.chevron} />
@@ -43,7 +82,25 @@ const SettingsScreen = () => {
       "Are you sure you want to delete all test history and analytics? This action cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Clear", style: "destructive", onPress: () => console.log("Data cleared") }
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const db = await getDBConnection();
+              await clearAllData(db);
+              await AsyncStorage.clear();
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                })
+              );
+            } catch (error) {
+              console.log('Clear Data Error:', error);
+            }
+          },
+        },
       ]
     );
   };
@@ -52,7 +109,7 @@ const SettingsScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={COLORS.light.text} />
+          <ChevronLeft size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
       </View>
@@ -60,32 +117,32 @@ const SettingsScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Appearance</Text>
-          <SettingItem 
-            icon={Moon} 
-            title="Dark Mode" 
-            subtitle="Switch to dark theme" 
-            value={isDarkMode} 
-            onValueChange={setIsDarkMode} 
+          <SettingItem
+            icon={Moon}
+            title="Dark Mode"
+            subtitle="Switch to dark theme"
+            value={isDark}
+            onValueChange={toggleTheme}
           />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
-          <SettingItem 
-            icon={Bell} 
-            title="Daily Reminders" 
-            subtitle="Get notified to practice daily" 
-            value={notificationsEnabled} 
-            onValueChange={setNotificationsEnabled} 
+          <SettingItem
+            icon={Bell}
+            title="Daily Reminders"
+            subtitle="Get notified to practice daily"
+            value={notificationsEnabled}
+            onValueChange={handleToggleNotifications}
           />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Data Management</Text>
-          <SettingItem 
-            icon={Trash2} 
-            title="Clear History" 
-            subtitle="Delete all test results" 
+          <SettingItem
+            icon={Trash2}
+            title="Clear History"
+            subtitle="Delete all test results"
             type="button"
             onPress={handleClearData}
           />
@@ -93,16 +150,16 @@ const SettingsScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          <SettingItem 
-            icon={Info} 
-            title="App Version" 
-            subtitle="1.0.0" 
+          <SettingItem
+            icon={Info}
+            title="App Version"
+            subtitle="1.0.0"
             type="button"
           />
-          <SettingItem 
-            icon={Share2} 
-            title="Share App" 
-            subtitle="Invite friends to practice" 
+          <SettingItem
+            icon={Share2}
+            title="Share App"
+            subtitle="Invite friends to practice"
             type="button"
           />
         </View>
@@ -116,10 +173,10 @@ const SettingsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -133,7 +190,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   scrollContent: {
     padding: SPACING.lg,
@@ -144,7 +201,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: SPACING.md,
@@ -153,7 +210,7 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.sm,
@@ -163,7 +220,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primary + '15',
+    backgroundColor: theme.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
@@ -174,11 +231,11 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   settingSubtitle: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginTop: 2,
   },
   chevron: {
@@ -186,7 +243,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderTopWidth: 2,
     borderRightWidth: 2,
-    borderColor: COLORS.light.border,
+    borderColor: theme.border,
     transform: [{ rotate: '45deg' }],
   },
   footer: {
@@ -197,11 +254,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
   },
   footerSubText: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginTop: 4,
   },
 });

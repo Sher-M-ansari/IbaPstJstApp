@@ -1,16 +1,20 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, FlatList } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
-import { CheckCircle, XCircle, RotateCcw, Home, ChevronDown, ChevronUp } from 'lucide-react-native';
-import { getDBConnection, saveTestResult, updateTopicPerformance } from '../database/db';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
+import { CheckCircle, XCircle, RotateCcw, Home } from 'lucide-react-native';
+import { getDBConnection, saveTestResult } from '../database/db';
+import { rescheduleAll } from '../services/notifications';
 
 const ResultScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Result'>>();
   const result = route.params;
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
     const saveResult = async () => {
@@ -25,9 +29,9 @@ const ResultScreen = () => {
           accuracy: result.accuracy,
           timeTaken: result.timeTaken
         });
-
-        // Update topic performance for each question (simplified logic here)
-        // In a real app, we'd pass all questions and their results
+        rescheduleAll().catch((err) =>
+          console.warn('[notifications] post-test reschedule failed', err),
+        );
       } catch (error) {
         console.error("Error saving result:", error);
       }
@@ -60,10 +64,10 @@ const ResultScreen = () => {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard label="Correct" value={result.correctAnswers} color={COLORS.success} />
-          <StatCard label="Incorrect" value={result.incorrectAnswers} color={COLORS.error} />
-          <StatCard label="Accuracy" value={`${result.accuracy}%`} color={COLORS.primary} />
-          <StatCard label="Time Taken" value={formatTime(result.timeTaken)} color="#9C27B0" />
+          <StatCard label="Correct" value={result.correctAnswers} color={theme.success} />
+          <StatCard label="Incorrect" value={result.incorrectAnswers} color={theme.error} />
+          <StatCard label="Accuracy" value={`${result.accuracy}%`} color={theme.primary} />
+          <StatCard label="Time Taken" value={formatTime(result.timeTaken)} color={theme.accentPurple} />
         </View>
 
         {result.wrongQuestions.length > 0 && (
@@ -73,11 +77,11 @@ const ResultScreen = () => {
               <View key={index} style={styles.wrongQuestionCard}>
                 <Text style={styles.wrongQuestionText}>{q.question}</Text>
                 <View style={styles.answerRow}>
-                  <XCircle size={16} color={COLORS.error} />
+                  <XCircle size={16} color={theme.error} />
                   <Text style={styles.userAnswerText}>Your: {q.userAnswer}</Text>
                 </View>
                 <View style={styles.answerRow}>
-                  <CheckCircle size={16} color={COLORS.success} />
+                  <CheckCircle size={16} color={theme.success} />
                   <Text style={styles.correctAnswerText}>Correct: {q.correctAnswer}</Text>
                 </View>
               </View>
@@ -86,19 +90,19 @@ const ResultScreen = () => {
         )}
 
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.retakeButton} 
+          <TouchableOpacity
+            style={styles.retakeButton}
             onPress={() => navigation.replace('TestSetup', { subject: result.subject })}
           >
-            <RotateCcw size={20} color="#FFFFFF" />
+            <RotateCcw size={20} color={theme.textOnPrimary} />
             <Text style={styles.retakeButtonText}>Retake Test</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.homeButton} 
+
+          <TouchableOpacity
+            style={styles.homeButton}
             onPress={() => navigation.navigate('Home')}
           >
-            <Home size={20} color={COLORS.primary} />
+            <Home size={20} color={theme.primary} />
             <Text style={styles.homeButtonText}>Back to Home</Text>
           </TouchableOpacity>
         </View>
@@ -107,10 +111,10 @@ const ResultScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   scrollContent: {
     padding: SPACING.lg,
@@ -122,18 +126,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
     marginBottom: SPACING.lg,
   },
   scoreCircle: {
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: COLORS.primary,
+    shadowColor: theme.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -141,11 +145,11 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 42,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
     opacity: 0.9,
   },
   statsGrid: {
@@ -157,7 +161,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
@@ -167,11 +171,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginTop: 4,
   },
   reviewSection: {
@@ -180,21 +184,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
     marginBottom: SPACING.md,
   },
   wrongQuestionCard: {
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.sm,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
+    borderLeftColor: theme.error,
   },
   wrongQuestionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.light.text,
+    color: theme.text,
     marginBottom: SPACING.sm,
   },
   answerRow: {
@@ -205,11 +209,11 @@ const styles = StyleSheet.create({
   },
   userAnswerText: {
     fontSize: 14,
-    color: COLORS.error,
+    color: theme.error,
   },
   correctAnswerText: {
     fontSize: 14,
-    color: COLORS.success,
+    color: theme.success,
     fontWeight: '600',
   },
   actionButtons: {
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   retakeButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     flexDirection: 'row',
     height: 56,
     borderRadius: BORDER_RADIUS.lg,
@@ -229,10 +233,10 @@ const styles = StyleSheet.create({
   retakeButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textOnPrimary,
   },
   homeButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     flexDirection: 'row',
     height: 56,
     borderRadius: BORDER_RADIUS.lg,
@@ -240,12 +244,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: theme.primary,
   },
   homeButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
   },
 });
 

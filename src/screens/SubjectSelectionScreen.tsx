@@ -1,25 +1,29 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
 import { ChevronLeft, Book, Calculator, FlaskConical, Layers } from 'lucide-react-native';
 
-const SUBJECTS = [
-  { id: 'english', title: 'English', icon: Book, color: '#4A90E2' },
-  { id: 'math', title: 'Math', icon: Calculator, color: '#F5A623' },
-  { id: 'science', title: 'Science', icon: FlaskConical, color: '#7ED321' },
-  { id: 'combined', title: 'Combined Test', icon: Layers, color: '#9013FE' },
+const buildSubjects = (theme: Theme) => [
+  { id: 'english', title: 'English', icon: Book, color: theme.subjects.english },
+  { id: 'math', title: 'Math', icon: Calculator, color: theme.subjects.math },
+  { id: 'science', title: 'Science', icon: FlaskConical, color: theme.subjects.science },
+  { id: 'combined', title: 'Combined Test', icon: Layers, color: theme.subjects.combined },
 ];
 
 const SubjectSelectionScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const subjects = useMemo(() => buildSubjects(theme), [theme]);
 
   const renderSubject = ({ item }: any) => {
     const Icon = item.icon;
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.subjectCard, { borderLeftColor: item.color }]}
         onPress={() => navigation.navigate('TestSetup', { subject: item.id })}
       >
@@ -35,13 +39,13 @@ const SubjectSelectionScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={COLORS.light.text} />
+          <ChevronLeft size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Subject</Text>
       </View>
 
       <FlatList
-        data={SUBJECTS}
+        data={subjects}
         renderItem={renderSubject}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -51,10 +55,10 @@ const SubjectSelectionScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -68,7 +72,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   listContent: {
     padding: SPACING.lg,
@@ -77,14 +81,14 @@ const styles = StyleSheet.create({
   subjectCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     borderLeftWidth: 6,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: theme.shadowOpacity,
     shadowRadius: 4,
   },
   iconWrapper: {
@@ -98,7 +102,7 @@ const styles = StyleSheet.create({
   subjectTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.light.text,
+    color: theme.text,
   },
 });
 

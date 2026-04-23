@@ -1,34 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
 import { ChevronLeft, BarChart2, TrendingUp, Calendar, BookOpen } from 'lucide-react-native';
-import { getDBConnection, getTestHistory, getTopicPerformance } from '../database/db';
+import { getDBConnection, getTestHistory, getTopicPerformance, TopicPerformance } from '../database/db';
+import TopicPerformanceItem from '../components/TopicPerformanceItem';
 
 const AnalyticsScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [history, setHistory] = useState<any[]>([]);
-  const [performance, setPerformance] = useState<any[]>([]);
+  const [performance, setPerformance] = useState<TopicPerformance[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const db = await getDBConnection();
-        const testHistory = await getTestHistory(db);
-        const topicPerformance = await getTopicPerformance(db);
-        setHistory(testHistory);
-        setPerformance(topicPerformance);
-      } catch (error) {
-        console.error("Error fetching analytics:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const db = await getDBConnection();
+      const [testHistory, topicPerformance] = await Promise.all([
+        getTestHistory(db),
+        getTopicPerformance(db),
+      ]);
+      setHistory(testHistory);
+      setPerformance(topicPerformance);
+    } catch (e) {
+      console.error('Error fetching analytics:', e);
+      setError('Could not load analytics. Tap retry.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const renderHistoryItem = ({ item }: any) => (
     <View style={styles.historyCard}>
@@ -53,27 +66,11 @@ const AnalyticsScreen = () => {
     </View>
   );
 
-  const renderTopicPerformance = (item: any) => {
-    const accuracy = Math.round((item.correctCount / item.totalCount) * 100);
-    return (
-      <View key={item.id} style={styles.topicCard}>
-        <View style={styles.topicHeader}>
-          <Text style={styles.topicName}>{item.topic}</Text>
-          <Text style={styles.topicAccuracy}>{accuracy}%</Text>
-        </View>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${accuracy}%`, backgroundColor: accuracy > 70 ? COLORS.success : accuracy > 40 ? COLORS.warning : COLORS.error }]} />
-        </View>
-        <Text style={styles.topicStats}>{item.correctCount} correct out of {item.totalCount} questions</Text>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={COLORS.light.text} />
+          <ChevronLeft size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Analytics</Text>
       </View>
@@ -83,12 +80,12 @@ const AnalyticsScreen = () => {
           <Text style={styles.sectionTitle}>Performance Overview</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statBox}>
-              <TrendingUp size={24} color={COLORS.primary} />
+              <TrendingUp size={24} color={theme.primary} />
               <Text style={styles.statBoxValue}>{history.length}</Text>
               <Text style={styles.statBoxLabel}>Tests Taken</Text>
             </View>
             <View style={styles.statBox}>
-              <BarChart2 size={24} color={COLORS.success} />
+              <BarChart2 size={24} color={theme.success} />
               <Text style={styles.statBoxValue}>
                 {history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.score, 0) / history.length) : 0}%
               </Text>
@@ -99,11 +96,20 @@ const AnalyticsScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Topic-wise Performance</Text>
-          {performance.length > 0 ? (
-            performance.map(renderTopicPerformance)
+          {loading ? (
+            <ActivityIndicator size="large" color={theme.primary} style={styles.loader} />
+          ) : error ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>{error}</Text>
+              <TouchableOpacity onPress={loadData} style={styles.retryButton}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : performance.length > 0 ? (
+            performance.map(item => <TopicPerformanceItem key={item.id} item={item} />)
           ) : (
             <View style={styles.emptyState}>
-              <BookOpen size={48} color={COLORS.light.border} />
+              <BookOpen size={48} color={theme.border} />
               <Text style={styles.emptyText}>No topic data available yet. Start a test to see your progress!</Text>
             </View>
           )}
@@ -117,7 +123,7 @@ const AnalyticsScreen = () => {
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Calendar size={48} color={COLORS.light.border} />
+              <Calendar size={48} color={theme.border} />
               <Text style={styles.emptyText}>No test history found.</Text>
             </View>
           )}
@@ -127,10 +133,10 @@ const AnalyticsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light.background,
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -144,7 +150,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   scrollContent: {
     padding: SPACING.lg,
@@ -155,7 +161,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
     marginBottom: SPACING.md,
   },
   statsGrid: {
@@ -164,7 +170,7 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     alignItems: 'center',
@@ -173,56 +179,34 @@ const styles = StyleSheet.create({
   statBoxValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
     marginTop: SPACING.sm,
   },
   statBoxLabel: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     marginTop: 4,
   },
   section: {
     marginBottom: SPACING.xl,
   },
-  topicCard: {
-    backgroundColor: COLORS.light.surface,
-    padding: SPACING.md,
+  loader: {
+    padding: SPACING.xl,
+  },
+  retryButton: {
+    marginTop: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    backgroundColor: theme.primary,
     borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.sm,
-    elevation: 1,
   },
-  topicHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
-  },
-  topicName: {
-    fontSize: 16,
+  retryText: {
+    color: theme.textOnPrimary,
     fontWeight: '600',
-    color: COLORS.light.text,
-  },
-  topicAccuracy: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: COLORS.light.border,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: SPACING.sm,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  topicStats: {
-    fontSize: 12,
-    color: COLORS.light.textSecondary,
+    fontSize: 14,
   },
   historyCard: {
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.sm,
@@ -233,17 +217,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.light.border,
+    borderBottomColor: theme.border,
     paddingBottom: SPACING.sm,
   },
   historySubject: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
   },
   historyDate: {
     fontSize: 12,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
   },
   historyStats: {
     flexDirection: 'row',
@@ -255,21 +239,21 @@ const styles = StyleSheet.create({
   historyStatValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.light.text,
+    color: theme.text,
   },
   historyStatLabel: {
     fontSize: 10,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
   },
   emptyState: {
     alignItems: 'center',
     padding: SPACING.xl,
-    backgroundColor: COLORS.light.surface,
+    backgroundColor: theme.surface,
     borderRadius: BORDER_RADIUS.lg,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.light.textSecondary,
+    color: theme.textSecondary,
     textAlign: 'center',
     marginTop: SPACING.md,
   },

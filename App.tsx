@@ -27,7 +27,7 @@ const AppShell = () => {
         card: theme.surface,
         text: theme.text,
         border: theme.border,
-        primary: theme.primary,
+        primary: theme.primary, 
       },
     };
   }, [isDark, theme]);

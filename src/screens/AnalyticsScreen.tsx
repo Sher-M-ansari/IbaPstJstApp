@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Act
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { ChevronLeft, BarChart2, TrendingUp, Calendar, BookOpen } from 'lucide-react-native';
 import { getDBConnection, getTestHistory, getTopicPerformance, TopicPerformance } from '../database/db';
@@ -70,7 +70,7 @@ const AnalyticsScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={theme.text} />
+          <ChevronLeft size={ICON.xl} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Analytics</Text>
       </View>
@@ -80,12 +80,12 @@ const AnalyticsScreen = () => {
           <Text style={styles.sectionTitle}>Performance Overview</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statBox}>
-              <TrendingUp size={24} color={theme.primary} />
+              <TrendingUp size={ICON.lg} color={theme.primary} />
               <Text style={styles.statBoxValue}>{history.length}</Text>
               <Text style={styles.statBoxLabel}>Tests Taken</Text>
             </View>
             <View style={styles.statBox}>
-              <BarChart2 size={24} color={theme.success} />
+              <BarChart2 size={ICON.lg} color={theme.success} />
               <Text style={styles.statBoxValue}>
                 {history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.score, 0) / history.length) : 0}%
               </Text>
@@ -109,7 +109,7 @@ const AnalyticsScreen = () => {
             performance.map(item => <TopicPerformanceItem key={item.id} item={item} />)
           ) : (
             <View style={styles.emptyState}>
-              <BookOpen size={48} color={theme.border} />
+              <BookOpen size={ICON.xxl} color={theme.border} />
               <Text style={styles.emptyText}>No topic data available yet. Start a test to see your progress!</Text>
             </View>
           )}
@@ -123,7 +123,7 @@ const AnalyticsScreen = () => {
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Calendar size={48} color={theme.border} />
+              <Calendar size={ICON.xxl} color={theme.border} />
               <Text style={styles.emptyText}>No test history found.</Text>
             </View>
           )}
@@ -148,7 +148,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginRight: SPACING.md,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.text,
   },
@@ -159,7 +159,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: SPACING.md,
@@ -177,15 +177,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 2,
   },
   statBoxValue: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.text,
     marginTop: SPACING.sm,
   },
   statBoxLabel: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   section: {
     marginBottom: SPACING.xl,
@@ -203,7 +203,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   retryText: {
     color: theme.textOnPrimary,
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: font.sm,
   },
   historyCard: {
     backgroundColor: theme.surface,
@@ -221,12 +221,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     paddingBottom: SPACING.sm,
   },
   historySubject: {
-    fontSize: 14,
+    fontSize: font.sm,
     fontWeight: 'bold',
     color: theme.primary,
   },
   historyDate: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
   },
   historyStats: {
@@ -237,12 +237,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
   },
   historyStatValue: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: 'bold',
     color: theme.text,
   },
   historyStatLabel: {
-    fontSize: 10,
+    fontSize: font.xs,
     color: theme.textSecondary,
   },
   emptyState: {
@@ -252,7 +252,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderRadius: BORDER_RADIUS.lg,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.textSecondary,
     textAlign: 'center',
     marginTop: SPACING.md,

@@ -1,3 +1,5 @@
+import { RW } from './responsive';
+
 export type ThemeMode = 'light' | 'dark';
 
 export const lightTheme = {
@@ -59,16 +61,18 @@ export const darkTheme: Theme = {
 export type Theme = typeof lightTheme;
 
 export const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  xs: RW('1%'),
+  sm: RW('2%'),
+  md: RW('4%'),
+  lg: RW('6%'),
+  xl: RW('8%'),
 };
 
 export const BORDER_RADIUS = {
-  sm: 4,
-  md: 8,
-  lg: 16,
-  xl: 24,
+  sm: RW('1%'),
+  md: RW('2%'),
+  lg: RW('4%'),
+  xl: RW('6%'),
 };
+
+export { RW, RH, font, ICON, DIM } from './responsive';

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } fr
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON, DIM } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { ChevronLeft, Play } from 'lucide-react-native';
 
@@ -25,7 +25,7 @@ const TestSetupScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={theme.text} />
+          <ChevronLeft size={ICON.xl} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Test Setup</Text>
       </View>
@@ -69,7 +69,7 @@ const TestSetupScreen = () => {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.startButton} onPress={handleStartTest}>
           <Text style={styles.startButtonText}>Start Test</Text>
-          <Play size={20} color={theme.textOnPrimary} fill={theme.textOnPrimary} />
+          <Play size={ICON.md} color={theme.textOnPrimary} fill={theme.textOnPrimary} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -91,7 +91,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginRight: SPACING.md,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.text,
   },
@@ -106,17 +106,17 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 2,
   },
   subjectLabel: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.textSecondary,
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   subjectValue: {
-    fontSize: 22,
+    fontSize: font.xl,
     fontWeight: 'bold',
     color: theme.primary,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: SPACING.md,
@@ -142,7 +142,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.primary,
   },
   countText: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: '600',
     color: theme.text,
   },
@@ -157,16 +157,16 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderLeftColor: theme.primary,
   },
   instructionTitle: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: 'bold',
     color: theme.primary,
     marginBottom: SPACING.sm,
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.textSecondary,
-    marginBottom: 4,
-    lineHeight: 20,
+    marginBottom: SPACING.xs,
+    lineHeight: font.xl,
   },
   footer: {
     padding: SPACING.lg,
@@ -177,7 +177,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   startButton: {
     backgroundColor: theme.primary,
     flexDirection: 'row',
-    height: 56,
+    height: DIM.button,
     borderRadius: BORDER_RADIUS.lg,
     justifyContent: 'center',
     alignItems: 'center',
@@ -185,7 +185,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 4,
   },
   startButtonText: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.textOnPrimary,
   },

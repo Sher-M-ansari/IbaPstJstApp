@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Ale
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON, DIM } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { Clock, X } from 'lucide-react-native';
 import { getDBConnection, updateTopicPerformanceBatch, TopicDelta } from '../database/db';
@@ -144,7 +144,7 @@ const TestScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-          <X size={24} color={theme.text} />
+          <X size={ICON.lg} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>Question {currentIndex + 1} of {questions.length}</Text>
@@ -153,7 +153,7 @@ const TestScreen = () => {
           </View>
         </View>
         <View style={styles.timerContainer}>
-          <Clock size={18} color={theme.primary} />
+          <Clock size={ICON.md} color={theme.primary} />
           <Text style={styles.timerText}>{formatTime(timer)}</Text>
         </View>
       </View>
@@ -231,15 +231,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginHorizontal: SPACING.md,
   },
   progressText: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
     textAlign: 'center',
   },
   progressBar: {
-    height: 6,
+    height: DIM.progressBarThin,
     backgroundColor: theme.border,
-    borderRadius: 3,
+    borderRadius: BORDER_RADIUS.sm,
     overflow: 'hidden',
   },
   progressFill: {
@@ -251,12 +251,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.surfaceAlt,
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
+    paddingVertical: SPACING.xs,
     borderRadius: BORDER_RADIUS.md,
-    gap: 4,
+    gap: SPACING.xs,
   },
   timerText: {
-    fontSize: 14,
+    fontSize: font.sm,
     fontWeight: 'bold',
     color: theme.primary,
     fontFamily: 'monospace',
@@ -272,21 +272,21 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 1,
   },
   topicBadge: {
-    fontSize: 12,
+    fontSize: font.xs,
     fontWeight: 'bold',
     color: theme.primary,
     backgroundColor: theme.surfaceAlt,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.sm,
     alignSelf: 'flex-start',
     marginBottom: SPACING.md,
   },
   questionText: {
-    fontSize: 20,
+    fontSize: font.xl,
     fontWeight: '600',
     color: theme.text,
-    lineHeight: 28,
+    lineHeight: font.xxxl,
   },
   optionsContainer: {
     gap: SPACING.md,
@@ -305,9 +305,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.surfaceAlt,
   },
   optionCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: DIM.optionCircle,
+    height: DIM.optionCircle,
+    borderRadius: DIM.optionCircle / 2,
     borderWidth: 1,
     borderColor: theme.border,
     justifyContent: 'center',
@@ -319,7 +319,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.primary,
   },
   optionLetter: {
-    fontSize: 14,
+    fontSize: font.sm,
     fontWeight: 'bold',
     color: theme.textSecondary,
   },
@@ -327,7 +327,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textOnPrimary,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: font.md,
     color: theme.text,
     flex: 1,
   },
@@ -343,7 +343,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   nextButton: {
     backgroundColor: theme.primary,
-    height: 56,
+    height: DIM.button,
     borderRadius: BORDER_RADIUS.lg,
     justifyContent: 'center',
     alignItems: 'center',
@@ -354,7 +354,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 0,
   },
   nextButtonText: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.textOnPrimary,
   },

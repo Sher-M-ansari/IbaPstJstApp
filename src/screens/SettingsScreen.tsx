@@ -4,10 +4,11 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON, RW } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { clearAllData, getDBConnection } from '../database/db';
 import { ChevronLeft, Moon, Bell, Trash2, Info, Share2 } from 'lucide-react-native';
+import Share from 'react-native-share';
 import {
   isNotificationsEnabled,
   setNotificationsEnabledAndApply,
@@ -57,7 +58,7 @@ const SettingsScreen = () => {
       disabled={type === 'switch'}
     >
       <View style={styles.settingIcon}>
-        <Icon size={22} color={theme.primary} />
+        <Icon size={ICON.md} color={theme.primary} />
       </View>
       <View style={styles.settingContent}>
         <Text style={styles.settingTitle}>{title}</Text>
@@ -105,11 +106,38 @@ const SettingsScreen = () => {
     );
   };
 
+  const handleShareApp = async () => {
+    const shareOptions = {
+      title: 'Share IBA PST JST Test Preparation',
+      message:
+        'Check out this amazing app: IBA PST JST Test Preparation. Download it here: https://play.google.com/store/apps/details?id=com.ibapstjstapp',
+      failOnCancel: false,
+    };
+
+    try {
+      await Share.open(shareOptions);
+    } catch (error: any) {
+      const msg = typeof error?.message === 'string' ? error.message : '';
+      const isUserCancel =
+        msg === 'User did not share' ||
+        msg.toLowerCase().includes('cancel') ||
+        msg.toLowerCase().includes('dismiss');
+
+      if (isUserCancel) return;
+
+      console.log('Share Error:', error);
+      Alert.alert(
+        'Unable to share',
+        'Something went wrong while opening the share sheet. Please try again.',
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={theme.text} />
+          <ChevronLeft size={ICON.xl} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
       </View>
@@ -161,6 +189,7 @@ const SettingsScreen = () => {
             title="Share App"
             subtitle="Invite friends to practice"
             type="button"
+            onPress={handleShareApp}
           />
         </View>
 
@@ -188,7 +217,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginRight: SPACING.md,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.text,
   },
@@ -199,7 +228,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: font.sm,
     fontWeight: 'bold',
     color: theme.primary,
     textTransform: 'uppercase',
@@ -217,9 +246,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 1,
   },
   settingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: RW('10%'),
+    height: RW('10%'),
+    borderRadius: RW('5%'),
     backgroundColor: theme.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
@@ -229,18 +258,18 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: '600',
     color: theme.text,
   },
   settingSubtitle: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
-    marginTop: 2,
+    marginTop: SPACING.xs,
   },
   chevron: {
-    width: 8,
-    height: 8,
+    width: RW('2%'),
+    height: RW('2%'),
     borderTopWidth: 2,
     borderRightWidth: 2,
     borderColor: theme.border,
@@ -252,14 +281,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: font.sm,
     fontWeight: 'bold',
     color: theme.textSecondary,
   },
   footerSubText: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
 });
 

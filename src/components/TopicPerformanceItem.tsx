@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, DIM } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { TopicPerformance } from '../database/db';
 
@@ -58,39 +58,39 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     gap: SPACING.sm,
   },
   name: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: '600',
     color: theme.text,
     flexShrink: 1,
   },
   subjectBadge: {
-    fontSize: 10,
+    fontSize: font.xs,
     fontWeight: 'bold',
     color: theme.primary,
     backgroundColor: theme.surfaceAlt,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.sm,
   },
   accuracy: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: 'bold',
     color: theme.primary,
     marginLeft: SPACING.sm,
   },
   progressBar: {
-    height: 8,
+    height: DIM.progressBarThick,
     backgroundColor: theme.border,
-    borderRadius: 4,
+    borderRadius: BORDER_RADIUS.sm,
     overflow: 'hidden',
     marginBottom: SPACING.sm,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: BORDER_RADIUS.sm,
   },
   stats: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
   },
 });

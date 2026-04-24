@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } fr
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON, DIM } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { CheckCircle, XCircle, RotateCcw, Home } from 'lucide-react-native';
 import { getDBConnection, saveTestResult } from '../database/db';
@@ -77,11 +77,11 @@ const ResultScreen = () => {
               <View key={index} style={styles.wrongQuestionCard}>
                 <Text style={styles.wrongQuestionText}>{q.question}</Text>
                 <View style={styles.answerRow}>
-                  <XCircle size={16} color={theme.error} />
+                  <XCircle size={ICON.sm} color={theme.error} />
                   <Text style={styles.userAnswerText}>Your: {q.userAnswer}</Text>
                 </View>
                 <View style={styles.answerRow}>
-                  <CheckCircle size={16} color={theme.success} />
+                  <CheckCircle size={ICON.sm} color={theme.success} />
                   <Text style={styles.correctAnswerText}>Correct: {q.correctAnswer}</Text>
                 </View>
               </View>
@@ -94,7 +94,7 @@ const ResultScreen = () => {
             style={styles.retakeButton}
             onPress={() => navigation.replace('TestSetup', { subject: result.subject })}
           >
-            <RotateCcw size={20} color={theme.textOnPrimary} />
+            <RotateCcw size={ICON.md} color={theme.textOnPrimary} />
             <Text style={styles.retakeButtonText}>Retake Test</Text>
           </TouchableOpacity>
 
@@ -102,7 +102,7 @@ const ResultScreen = () => {
             style={styles.homeButton}
             onPress={() => navigation.navigate('Home')}
           >
-            <Home size={20} color={theme.primary} />
+            <Home size={ICON.md} color={theme.primary} />
             <Text style={styles.homeButtonText}>Back to Home</Text>
           </TouchableOpacity>
         </View>
@@ -124,15 +124,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: SPACING.lg,
   },
   scoreCircle: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: DIM.scoreCircle,
+    height: DIM.scoreCircle,
+    borderRadius: DIM.scoreCircle / 2,
     backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -143,12 +143,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     shadowRadius: 8,
   },
   scoreValue: {
-    fontSize: 42,
+    fontSize: font.hero,
     fontWeight: 'bold',
     color: theme.textOnPrimary,
   },
   scoreLabel: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.textOnPrimary,
     opacity: 0.9,
   },
@@ -169,20 +169,20 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 2,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: font.xl,
     fontWeight: 'bold',
     color: theme.text,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   reviewSection: {
     marginBottom: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: SPACING.md,
@@ -196,7 +196,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderLeftColor: theme.error,
   },
   wrongQuestionText: {
-    fontSize: 16,
+    fontSize: font.md,
     fontWeight: '600',
     color: theme.text,
     marginBottom: SPACING.sm,
@@ -204,15 +204,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   answerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
+    gap: SPACING.sm,
+    marginTop: SPACING.xs,
   },
   userAnswerText: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.error,
   },
   correctAnswerText: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.success,
     fontWeight: '600',
   },
@@ -223,7 +223,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   retakeButton: {
     backgroundColor: theme.primary,
     flexDirection: 'row',
-    height: 56,
+    height: DIM.button,
     borderRadius: BORDER_RADIUS.lg,
     justifyContent: 'center',
     alignItems: 'center',
@@ -231,14 +231,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 4,
   },
   retakeButtonText: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.textOnPrimary,
   },
   homeButton: {
     backgroundColor: theme.surface,
     flexDirection: 'row',
-    height: 56,
+    height: DIM.button,
     borderRadius: BORDER_RADIUS.lg,
     justifyContent: 'center',
     alignItems: 'center',
@@ -247,7 +247,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.primary,
   },
   homeButtonText: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.primary,
   },

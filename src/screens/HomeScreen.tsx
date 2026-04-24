@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } fr
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON, DIM } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { BookOpen, BarChart2, Settings, Play } from 'lucide-react-native';
 import { getDBConnection, getTestHistory } from '../database/db';
@@ -42,13 +42,13 @@ const HomeScreen = () => {
       activeOpacity={0.7}
     >
       <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
-        <Icon size={28} color={color} />
+        <Icon size={ICON.xl} color={color} />
       </View>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardSubtitle}>Tap to explore</Text>
       </View>
-      <Play size={20} color={theme.textSecondary} />
+      <Play size={ICON.md} color={theme.textSecondary} />
     </TouchableOpacity>
   );
 
@@ -112,11 +112,11 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginTop: SPACING.md,
   },
   greeting: {
-    fontSize: 18,
+    fontSize: font.lg,
     color: theme.textSecondary,
   },
   appName: {
-    fontSize: 32,
+    fontSize: font.xxxl,
     fontWeight: 'bold',
     color: theme.text,
   },
@@ -137,8 +137,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     shadowRadius: 4,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
+    width: DIM.iconContainer,
+    height: DIM.iconContainer,
     borderRadius: BORDER_RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
@@ -148,19 +148,19 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: 'bold',
     color: theme.text,
   },
   cardSubtitle: {
-    fontSize: 14,
+    fontSize: font.sm,
     color: theme.textSecondary,
   },
   statsOverview: {
     marginTop: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: font.xl,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: SPACING.md,
@@ -179,14 +179,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 2,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.primary,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: font.xs,
     color: theme.textSecondary,
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
 });
 

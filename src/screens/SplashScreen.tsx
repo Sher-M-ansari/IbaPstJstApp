@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { Theme } from '../utils/theme';
+import { Theme, font, SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 
 const SplashScreen = () => {
@@ -55,15 +55,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
   },
   logoText: {
-    fontSize: 42,
+    fontSize: font.hero,
     fontWeight: 'bold',
     color: theme.textOnPrimary,
     letterSpacing: 2,
   },
   subText: {
-    fontSize: 18,
+    fontSize: font.lg,
     color: theme.textOnPrimary,
-    marginTop: 10,
+    marginTop: SPACING.sm,
     opacity: 0.9,
   },
 });

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList } from
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { BORDER_RADIUS, SPACING, Theme } from '../utils/theme';
+import { BORDER_RADIUS, SPACING, Theme, font, ICON, RW } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import { ChevronLeft, Book, Calculator, FlaskConical, Layers } from 'lucide-react-native';
 
@@ -28,7 +28,7 @@ const SubjectSelectionScreen = () => {
         onPress={() => navigation.navigate('TestSetup', { subject: item.id })}
       >
         <View style={[styles.iconWrapper, { backgroundColor: item.color + '15' }]}>
-          <Icon size={24} color={item.color} />
+          <Icon size={ICON.lg} color={item.color} />
         </View>
         <Text style={styles.subjectTitle}>{item.title}</Text>
       </TouchableOpacity>
@@ -39,7 +39,7 @@ const SubjectSelectionScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={28} color={theme.text} />
+          <ChevronLeft size={ICON.xl} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Subject</Text>
       </View>
@@ -70,7 +70,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginRight: SPACING.md,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: font.xxl,
     fontWeight: 'bold',
     color: theme.text,
   },
@@ -92,15 +92,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     shadowRadius: 4,
   },
   iconWrapper: {
-    width: 48,
-    height: 48,
+    width: RW('12%'),
+    height: RW('12%'),
     borderRadius: BORDER_RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.lg,
   },
   subjectTitle: {
-    fontSize: 18,
+    fontSize: font.lg,
     fontWeight: '600',
     color: theme.text,
   },

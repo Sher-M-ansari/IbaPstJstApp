@@ -40,7 +40,7 @@ const AppShell = () => {
         translucent
       />
       <AppNavigator />
-    </NavigationContainer>
+    </NavigationContainer> 
   );
 };
 

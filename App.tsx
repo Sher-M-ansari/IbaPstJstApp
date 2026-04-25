@@ -19,7 +19,7 @@ const AppShell = () => {
 
   const navigationTheme = useMemo<NavTheme>(() => {
     const base = isDark ? NavDarkTheme : NavDefaultTheme;
-    return {
+    return { 
       ...base,
       colors: {
         ...base.colors,
